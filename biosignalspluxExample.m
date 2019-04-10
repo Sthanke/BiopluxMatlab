@@ -30,11 +30,21 @@ py.reload(py.importlib.import_module('biosignalsplux'));
 
 %% Prepare acquisition
 %Find connected Devices
-py.plux.BaseDev.findDevices( )
+tuple = py.plux.BaseDev.findDevices( )
+
+tuple_data = [];
+
+for i = 1:length(tuple)
+    % Convert into MATLAB cells & select channel 1 data
+    tuple_data = [tuple_data, cell(tuple{1, i})];
+end
+
+tuple_data = cellfun(@string, tuple_data);
 
 % Set the device's MAC-address & create an object of the biosignalsplux
 % class
-mac_address = 'BTH00:07:80:4D:2F:12';
+%mac_address = 'BTH00:07:80:4D:2F:12';
+mac_address = tuple_data(1);
 dev = py.biosignalsplux.biosignalsplux(mac_address);
 
 % Set the sampling rate in Hz (here: 1000Hz)
@@ -76,22 +86,22 @@ dev.close();
 
 % Get all sensor data & prepare a container
 acq_data = cell(dev.frames);
-channel1_data = [];
+channel_one_data = [];
 
 % Go through all available samples & extract the data of the first channel
 for i = 1:length(acq_data)
     % Convert into MATLAB cells & select channel 1 data
-    channel1_data = [channel1_data, cell(acq_data{1, i})];
+    channel_one_data = [channel_one_data, cell(acq_data{1, i})];
 end
 
 % Convert into a MATLAB array
-channel1_data = cellfun(@double, channel1_data);
+channel_one_data = cellfun(@double, channel_one_data);
 
 %% Plot the acquires sensor data
 % Create time vector
-t = 0:(1/double(sampling_rate)):((length(channel1_data)-1)/double(sampling_rate));
+t = 0:(1/double(sampling_rate)):((length(channel_one_data)-1)/double(sampling_rate));
 
 % Plot the acquired data
-plot(t, channel1_data);
+plot(t, channel_one_data);
 xlabel('Time [s]');
 ylabel('Raw Sensor Data [-]');
